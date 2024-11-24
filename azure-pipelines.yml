@@ -65,27 +65,51 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: drop
 
-- stage: 'Deploy'
-  displayName: 'Deploy the web application'
+# - stage: 'Deploy'
+#   displayName: 'Deploy the web application'
+#   dependsOn: Build
+#   jobs:
+#   - deployment: Deploy
+#     pool:
+#       vmImage: 'ubuntu-20.04'
+#     environment: dev
+#     variables:
+#     - group: Release
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - download: current
+#             artifact: drop
+#             # task command: download build artifact and deploy it
+#           - task: AzureWebApp@1 
+#             displayName: 'Azure App Service Deploy: website'
+#             inputs:
+#               # service connection
+#               azureSubscription: 'Service principal (automatic)'
+#               appName: '$(WebAppName)'
+#               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
+- stage: 'Staging'
+  displayName: 'Deploy to the staging environment'
+  # depends on which stage
   dependsOn: Build
   jobs:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-20.04'
-    environment: dev
+    environment: staging
     variables:
-    - group: Release
+    - group: 'Release'
     strategy:
       runOnce:
         deploy:
           steps:
           - download: current
             artifact: drop
-            # task command: download build artifact and deploy it
-          - task: AzureWebApp@1 
+          - task: AzureWebApp@1
             displayName: 'Azure App Service Deploy: website'
             inputs:
-              # service connection
               azureSubscription: 'Service principal (automatic)'
-              appName: '$(WebAppName)'
+              appName: '$(WebAppNameStaging)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
